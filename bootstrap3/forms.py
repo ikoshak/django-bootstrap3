@@ -43,7 +43,7 @@ def render_form(form, layout='', field_class='', label_class='', show_help=True,
     return html + '\n'.join(fields)
 
 
-def render_field(field, layout='', field_class=None, label_class=None, show_label=True, show_help=True, exclude=''):
+def render_field(field, layout='', input_wrapper='', field_class=None, label_class=None, show_label=True, show_help=True, exclude=''):
     # Only allow BoundField
     if not isinstance(field, BoundField):
         raise BootstrapError('Parameter "field" should contain a valid Django BoundField.' + field)
@@ -102,6 +102,10 @@ def render_field(field, layout='', field_class=None, label_class=None, show_labe
         ]
         for k, v in mapping:
             rendered_field = rendered_field.replace(k, v)
+
+    if input_wrapper:
+        rendered_field = input_wrapper % rendered_field
+
     # Wrap the rendered field in its label if necessary
     if put_inside_label:
         rendered_field = render_label('%s %s' % (rendered_field, field.label,), label_title=field.help_text)
