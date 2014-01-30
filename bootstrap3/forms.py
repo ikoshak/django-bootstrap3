@@ -34,7 +34,7 @@ def render_form(form, layout='', field_class='', label_class='', show_help=True,
             label_class=label_class,
             show_help=show_help,
             exclude=exclude,
-        ))
+            ))
         if field.is_hidden and field.errors:
             errors += field.errors
     errors += form.non_field_errors()
@@ -47,13 +47,13 @@ def render_field(field, layout='', input_wrapper='', field_class=None, label_cla
     # Only allow BoundField
     if not isinstance(field, BoundField):
         raise BootstrapError('Parameter "field" should contain a valid Django BoundField.' + field)
-    # See if we're not excluded
+        # See if we're not excluded
     if field.name in exclude.replace(' ', '').split(','):
         return ''
-    # Hidden input required no special treatment
+        # Hidden input required no special treatment
     if field.is_hidden:
         return force_text(field)
-    # Read widgets attributes
+        # Read widgets attributes
     widget_attr_class = field.field.widget.attrs.get('class', '')
     widget_attr_placeholder = field.field.widget.attrs.get('placeholder', '')
     widget_attr_title = field.field.widget.attrs.get('title', '')
@@ -79,14 +79,14 @@ def render_field(field, layout='', input_wrapper='', field_class=None, label_cla
     elif isinstance(field.field.widget, widgets.CheckboxSelectMultiple):
         form_control_class = ''
         list_to_class = 'checkbox'
-    # Temporarily adjust to widget class and placeholder attributes if necessary
+        # Temporarily adjust to widget class and placeholder attributes if necessary
     if form_control_class:
         field.field.widget.attrs['class'] = add_css_class(widget_attr_class, form_control_class)
     if field.label and not put_inside_label and not widget_attr_placeholder:
         field.field.widget.attrs['placeholder'] = field.label
     if show_help and not put_inside_label and not widget_attr_title:
         field.field.widget.attrs['title'] = field.help_text
-    # Render the field
+        # Render the field
     rendered_field = force_text(field)
     # Return class and placeholder attributes to original settings
     field.field.widget.attrs['class'] = widget_attr_class
@@ -99,7 +99,7 @@ def render_field(field, layout='', input_wrapper='', field_class=None, label_cla
             ('</ul>', '</div>'),
             ('<li', '<div class="%s"' % list_to_class),
             ('</li>', '</div>'),
-        ]
+            ]
         for k, v in mapping:
             rendered_field = rendered_field.replace(k, v)
 
@@ -109,7 +109,7 @@ def render_field(field, layout='', input_wrapper='', field_class=None, label_cla
     # Wrap the rendered field in its label if necessary
     if put_inside_label:
         rendered_field = render_label('%s %s' % (rendered_field, field.label,), label_title=field.help_text)
-    # Add any help text and/or errors
+        # Add any help text and/or errors
     if layout != 'inline':
         help_text_and_errors = []
         if show_help and field.help_text:
@@ -120,23 +120,24 @@ def render_field(field, layout='', input_wrapper='', field_class=None, label_cla
             rendered_field += '<span class="help-block">%s</span>' % ' '.join(
                 force_text(s) for s in help_text_and_errors
             )
-    # Wrap the rendered field
+        # Wrap the rendered field
     if wrapper:
         rendered_field = wrapper % rendered_field
-    # Prepare label
+        # Prepare label
     label = field.label
     if put_inside_label:
         label = None
     if layout == 'inline' or not show_label:
         label_class = add_css_class(label_class, 'sr-only')
-    # Render label and field
+        # Render label and field
     content = render_field_and_label(
         field=rendered_field,
         label=label,
+        required=True if field.field.required else '',
         field_class=field_class,
         label_class=label_class,
         layout=layout,
-    )
+        )
     # Return combined content, wrapped in form control
     form_group_class = ''
     if field.errors:
@@ -146,7 +147,7 @@ def render_field(field, layout='', input_wrapper='', field_class=None, label_cla
     return render_form_group(content, form_group_class)
 
 
-def render_label(content, label_for=None, label_class=None, label_title=''):
+def render_label(content, label_for=None, label_class=None, label_title='', required=''):
     attrs = {}
     if label_for:
         attrs['for'] = label_for
@@ -154,9 +155,12 @@ def render_label(content, label_for=None, label_class=None, label_title=''):
         attrs['class'] = label_class
     if label_title:
         attrs['title'] = label_title
-    return '<label%(attrs)s>%(content)s</label>' % {
+    if required:
+        required = '&nbsp;<span class="required">*</span>'
+    return '<label%(attrs)s>%(content)s%(required)s</label>' % {
         'attrs': flatatt(attrs),
         'content': content,
+        'required': required
     }
 
 
@@ -173,10 +177,10 @@ def render_button(content, button_type=None, icon=None):
     return '<button%(attrs)s>%(content)s</button>' % {
         'attrs': flatatt(attrs),
         'content': '%s%s' % (icon_content, content),
-    }
+        }
 
 
-def render_field_and_label(field, label, field_class='', label_class='', layout='', **kwargs):
+def render_field_and_label(field, required, label, field_class='', label_class='', layout='', **kwargs):
     # Default settings for horizontal form
     if layout == 'horizontal':
         if not label_class:
@@ -189,8 +193,9 @@ def render_field_and_label(field, label, field_class='', label_class='', layout=
     html = field
     if field_class:
         html = '<div class="%s">%s</div>' % (field_class, html)
+
     if label:
-        html = render_label(label, label_class=label_class) + html
+        html = render_label(label, label_class=label_class, required=required) + html
     return html
 
 
@@ -198,4 +203,4 @@ def render_form_group(content, css_class=''):
     return '<div class="%(class)s">%(content)s</div>' % {
         'class': add_css_class(FORM_GROUP_CLASS, css_class),
         'content': content,
-    }
+        }
