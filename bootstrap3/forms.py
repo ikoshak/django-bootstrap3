@@ -43,7 +43,7 @@ def render_form(form, layout='', field_class='', label_class='', show_help=True,
     return html + '\n'.join(fields)
 
 
-def render_field(field, layout='', input_wrapper='', field_class=None, label_class=None, show_label=True, show_help=True, exclude=''):
+def render_field(field, layout='', input_wrapper='', field_class=None, label_class=None, show_label=True, show_help=True, exclude='', show_placeholder=False):
     # Only allow BoundField
     if not isinstance(field, BoundField):
         raise BootstrapError('Parameter "field" should contain a valid Django BoundField.' + field)
@@ -56,6 +56,10 @@ def render_field(field, layout='', input_wrapper='', field_class=None, label_cla
         # Read widgets attributes
     widget_attr_class = field.field.widget.attrs.get('class', '')
     widget_attr_placeholder = field.field.widget.attrs.get('placeholder', '')
+    if not widget_attr_placeholder and show_placeholder:
+        widget_attr_placeholder = show_placeholder
+        field.field.widget.attrs['placeholder'] = show_placeholder
+
     widget_attr_title = field.field.widget.attrs.get('title', '')
     # Class to add to field element
     if isinstance(field.field.widget, widgets.FileInput):
@@ -82,8 +86,8 @@ def render_field(field, layout='', input_wrapper='', field_class=None, label_cla
         # Temporarily adjust to widget class and placeholder attributes if necessary
     if form_control_class:
         field.field.widget.attrs['class'] = add_css_class(widget_attr_class, form_control_class)
-    if field.label and not put_inside_label and not widget_attr_placeholder:
-        field.field.widget.attrs['placeholder'] = field.label
+        #if field.label and not put_inside_label and not widget_attr_placeholder:
+        #field.field.widget.attrs['placeholder'] = field.label
     if show_help and not put_inside_label and not widget_attr_title:
         field.field.widget.attrs['title'] = field.help_text
         # Render the field
@@ -120,7 +124,7 @@ def render_field(field, layout='', input_wrapper='', field_class=None, label_cla
             rendered_field += '<span class="help-block">%s</span>' % ' '.join(
                 force_text(s) for s in help_text_and_errors
             )
-        # Wrap the rendered field
+            # Wrap the rendered field
     if wrapper:
         rendered_field = wrapper % rendered_field
         # Prepare label
